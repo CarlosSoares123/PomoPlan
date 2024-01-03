@@ -33,7 +33,7 @@ const EventoDeEstudo = {
   criarEvento: async (req, res) => {
     try {
       const userId = req.user.userId
-      const { titulo, categoria, inicio, fim } = req.body
+      const { titulo, categoria, inicio, fim, dia } = req.body
 
       const schema = Joi.object({
         titulo: Joi.string().required(),
@@ -44,36 +44,31 @@ const EventoDeEstudo = {
         fim: Joi.string()
           .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
           .required(),
+        dia: Joi.string().required(),
         status: Joi.string().required()
       })
+
       const { error } = schema.validate(req.body)
       if (error) {
         return res.status(409).json({ error: error.details[0].message })
       }
 
-      // Obtenha a data atual
-      const hoje = new Date()
+      const evento = await EventoEstudo.findOne({where: {titulo} })
+      if(evento) {
+        return res.status(409).json({message: "Este Evento já existe."})
+      }
 
-      // Converta as horas e minutos fornecidos em objetos Date
-      const inicioDate = new Date(
-        hoje.getFullYear(),
-        hoje.getMonth(),
-        hoje.getDate(),
-        parseInt(inicio.split(':')[0]),
-        parseInt(inicio.split(':')[1])
-      )
-      const fimDate = new Date(
-        hoje.getFullYear(),
-        hoje.getMonth(),
-        hoje.getDate(),
-        parseInt(fim.split(':')[0]),
-        parseInt(fim.split(':')[1])
-      )
+      let hoje = new Date()
 
-      // Calcule a duração em minutos
+      if (dia === 'amanha') {
+        hoje.setDate(hoje.getDate() + 1)
+      }
+
+      const inicioDate = new Date(hoje.setHours(...inicio.split(':'), 0, 0))
+      const fimDate = new Date(hoje.setHours(...fim.split(':'), 0, 0))
+
       const duracaoEmMinutos = (fimDate - inicioDate) / (1000 * 60)
 
-      // Verificar se há eventos no calendário dentro do intervalo de tempo
       const conflitosEventos = await EventoEstudo.findAll({
         where: {
           userId,
@@ -96,14 +91,16 @@ const EventoDeEstudo = {
         duracao: duracaoEmMinutos,
         status: 'Incompleto'
       })
+
       return res
         .status(200)
-        .json(novoEvento)
+        .json({ message: `Evento criado com sucesso para ${dia}`, novoEvento })
     } catch (error) {
-      console.log(error)
+      console.error(error)
       return res.status(500).json({ error: 'Erro interno do Servidor' })
     }
   },
+
   actualizarEvento: async (req, res) => {
     try {
       const eventoId = req.params.eventoId
@@ -148,5 +145,6 @@ const EventoDeEstudo = {
     }
   }
 }
+
 
 module.exports = EventoDeEstudo
