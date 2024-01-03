@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
-const secretJwt = process.env.PomoPlan123@
+const secretJwt = process.env.SECRET_JWT
 
 const verifyToken = async (req, res, next) => {
   const token = req.headers.authorization
