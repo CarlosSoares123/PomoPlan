@@ -100,7 +100,6 @@ const EventoDeEstudo = {
       return res.status(500).json({ error: 'Erro interno do Servidor' })
     }
   },
-
   actualizarEvento: async (req, res) => {
     try {
       const eventoId = req.params.eventoId
