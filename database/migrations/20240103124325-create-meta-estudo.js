@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      idEvento: {
+      eventoId: {
         type: Sequelize.INTEGER,
         refere: {
           model: 'EventoEstudos',
